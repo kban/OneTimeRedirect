@@ -1,0 +1,34 @@
+[Unit]
+Description=One Time Redirect: SQLite backup and off-site upload
+# Failure is visible: `systemctl --failed`, journalctl -u one-time-redirect-backup, and the missing monitoring ping.
+After=network-online.target
+Wants=network-online.target
+# Do not take snapshots while a restore is in progress.
+ConditionPathExists=!/var/lib/one-time-redirect/RESTORE_LOCK
+
+[Service]
+Type=oneshot
+User=redirect
+Group=redirect
+UMask=0077
+StateDirectory=one-time-redirect
+StateDirectoryMode=0700
+# 1) online snapshot as the service user (never a plain file copy); 2) "+" = run as root with full privileges:
+#    upload to the off-site remote, verify it, and only then mark the snapshot as confirmed.
+ExecStart=/usr/local/sbin/otr-backup snapshot
+ExecStartPost=+/usr/local/sbin/otr-backup upload
+Environment=OTR_BIN=/opt/one-time-redirect/OneTimeRedirect.Web
+# Optional, root-only: RCLONE_REMOTE, RETENTION_LOCAL_DAYS, BACKUP_PING_URL (/etc/one-time-redirect-backup.env, 0600)
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/one-time-redirect
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+TimeoutStartSec=15min

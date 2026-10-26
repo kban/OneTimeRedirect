@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+.vs/
+data/
+*.db
+*.db-shm
+*.db-wal
+.env
+# Publish output (dotnet publish -p:PublishProfile=linux-x64) and archived old builds
+deploy/publish/
+deploy/publish-*/
+**/publish/
+*.tar.gz

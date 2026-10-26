@@ -1,0 +1,98 @@
+@page "/admin"
+@model OneTimeRedirect.Web.Pages.Admin.IndexModel
+@{
+    ViewData["Title"] = "Ссылки";
+}
+<h1>Ссылки</h1>
+@if (Model.Message is not null)
+{
+    <div class="notice">@Model.Message</div>
+}
+<form method="get" class="card row">
+    <div>
+        <label for="Q">Поиск (URL, описание)</label>
+        <input id="Q" name="q" value="@Model.Q" maxlength="200" />
+    </div>
+    <div>
+        <label for="Status">Статус</label>
+        <select id="Status" name="status">
+            <option value="">Все</option>
+            @foreach (var s in Enum.GetValues<LinkStatus>())
+            {
+                <option value="@s" selected="@(string.Equals(Model.Status, s.ToString(), StringComparison.OrdinalIgnoreCase))">@s</option>
+            }
+        </select>
+    </div>
+    <div class="shrink"><button type="submit">Фильтр</button></div>
+    <div class="shrink"><a class="btn secondary" href="/admin/create">Создать ссылку</a></div>
+</form>
+
+<div class="card table-wrap">
+    @if (Model.Result.Items.Count == 0)
+    {
+        <p class="muted">Ничего не найдено.</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr><th>ID</th><th>Целевой URL</th><th>Одноразовая ссылка</th><th class="hide-sm">Описание</th><th class="hide-sm">Создана (UTC)</th><th class="hide-sm">Истекает (UTC)</th><th>Статус</th><th></th></tr>
+            </thead>
+            <tbody>
+            @foreach (var link in Model.Result.Items)
+            {
+                var status = link.GetStatus(Model.Now);
+                <tr>
+                    <td>@link.Id</td>
+                    <td class="url">@link.TargetUrl</td>
+                    <td class="otl">
+                        @if (status != LinkStatus.Active)
+                        {
+                            <span class="muted">Недействительна</span>
+                        }
+                        else if (Model.CopyUrls.TryGetValue(link.Id, out var oneTimeUrl))
+                        {
+                            <code>@oneTimeUrl</code>
+                            <button type="button" class="secondary" data-copy-text="@oneTimeUrl">Копировать</button>
+                        }
+                        else
+                        {
+                            <span class="muted">Недоступна для копирования</span>
+                        }
+                    </td>
+                    <td class="hide-sm">@link.Description</td>
+                    <td class="hide-sm">@link.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="hide-sm">@(link.ExpiresAt?.ToString("yyyy-MM-dd HH:mm") ?? "—")</td>
+                    <td><span class="badge @status">@status</span></td>
+                    <td>
+                        @if (status == LinkStatus.Active)
+                        {
+                            <a href="/admin/links/@link.Id/edit">Изменить</a>
+                            <form method="post" asp-page-handler="Revoke" asp-route-status="@Model.Status" asp-route-q="@Model.Q" asp-route-p="@Model.Result.Page">
+                                <input type="hidden" name="id" value="@link.Id" />
+                                <button type="submit" class="danger">Отозвать</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a class="btn danger" asp-page="/Admin/Delete" asp-route-id="@link.Id" asp-route-status="@Model.Status" asp-route-q="@Model.Q" asp-route-p="@Model.Result.Page">Удалить</a>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>
+
+<div class="pager">
+    @if (Model.Result.Page > 1)
+    {
+        <a href="/admin?status=@Model.Status&q=@Uri.EscapeDataString(Model.Q ?? "")&p=@(Model.Result.Page - 1)">&larr; Назад</a>
+    }
+    <span class="muted">Страница @Model.Result.Page из @Model.Result.TotalPages (всего @Model.Result.Total)</span>
+    @if (Model.Result.Page < Model.Result.TotalPages)
+    {
+        <a href="/admin?status=@Model.Status&q=@Uri.EscapeDataString(Model.Q ?? "")&p=@(Model.Result.Page + 1)">Вперёд &rarr;</a>
+    }
+</div>

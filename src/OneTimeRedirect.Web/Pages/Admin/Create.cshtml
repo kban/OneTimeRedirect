@@ -1,0 +1,17 @@
+@page "/admin/create"
+@model OneTimeRedirect.Web.Pages.Admin.CreateModel
+@{
+    ViewData["Title"] = "Создать ссылку";
+}
+<h1>Создать ссылку</h1>
+<form method="post" class="card">
+    <div class="error" asp-validation-summary="All"></div>
+    <input type="hidden" name="SubmissionId" value="@Model.SubmissionId" />
+    <label for="TargetUrl">Целевой URL (HTTP или HTTPS)</label>
+    <input id="TargetUrl" name="TargetUrl" type="text" inputmode="url" autocomplete="off" required maxlength="2048" value="@Model.TargetUrl" placeholder="example.com или http(s)://example.com/page" />
+    <label for="ExpiresAtUtc">Истекает (UTC, необязательно)</label>
+    <input id="ExpiresAtUtc" name="ExpiresAtUtc" type="datetime-local" value="@Model.ExpiresAtUtc?.ToString("yyyy-MM-ddTHH:mm")" />
+    <label for="Description">Описание</label>
+    <input id="Description" name="Description" maxlength="500" value="@Model.Description" />
+    <p><button type="submit">Создать</button> <a class="btn secondary" href="/admin">К списку</a></p>
+</form>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>@ViewData["Title"] - One-Time Redirect</title>
+    <link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body>
+    <header class="top">
+        <a class="brand" href="/admin">One-Time Redirect</a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <nav>
+                <a href="/admin">Ссылки</a>
+                <a href="/admin/create">Создать</a>
+                <form method="post" asp-page="/Admin/Logout">
+                    <button type="submit" class="linklike">Выйти</button>
+                </form>
+            </nav>
+        }
+    </header>
+    <main>
+        @RenderBody()
+    </main>
+    <script src="/js/admin.js"></script>
+</body>
+</html>

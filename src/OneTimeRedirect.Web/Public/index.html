@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneTimeRedirect - Управление ссылками</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-used {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-revoked {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .token-display {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            word-break: break-all;
+            margin-top: 5px;
+            color: #667eea;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔗 OneTimeRedirect</h1>
+            <p>Управление одноразовыми ссылками</p>
+        </header>
+
+        <!-- Статистика -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="total-count">0</div>
+                <div class="stat-label">Всего ссылок</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="active-count">0</div>
+                <div class="stat-label">Активные</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="used-count">0</div>
+                <div class="stat-label">Использованы</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="expired-count">0</div>
+                <div class="stat-label">Истекли</div>
+            </div>
+        </div>
+
+        <!-- Форма создания -->
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">📝 Создать новую ссылку</h2>
+            <form id="create-form">
+                <div class="form-group">
+                    <label for="target-url">Целевой URL:</label>
+                    <input type="text" id="target-url" name="targetUrl" required placeholder="https://example.com/page">
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Описание (опционально):</label>
+                    <textarea id="description" name="description" rows="2" placeholder="Краткое описание ссылки"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="expires">Срок действия (опционально):</label>
+                    <select id="expires" name="expires">
+                        <option value="">Бессрочно</option>
+                        <option value="1d">1 день</option>
+                        <option value="7d">7 дней</option>
+                        <option value="30d">30 дней</option>
+                        <option value="90d">90 дней</option>
+                    </select>
+                </div>
+
+                <button type="submit">Создать ссылку</button>
+            </form>
+        </div>
+
+        <!-- Список ссылок -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2>📋 Список ссылок</h2>
+                <button id="refresh-btn" class="btn-secondary">Обновить</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Токен</th>
+                        <th>Целевой URL</th>
+                        <th>Описание</th>
+                        <th>Создано</th>
+                        <th>Истекает</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="links-table">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        // Обновление статистики и списка
+        async function refresh() {
+            try {
+                const [total, active, used, expired] = await Promise.all([
+                    fetch(`${API_BASE}/links/summary`).then(r => r.json()),
+                    fetch(`${API_BASE}/links?status=active`).then(r => r.json().then(data => data.length)),
+                    fetch(`${API_BASE}/links?status=used`).then(r => r.json().then(data => data.length)),
+                    fetch(`${API_BASE}/links?status=expired`).then(r => r.json().then(data => data.length))
+                ]);
+
+                document.getElementById('total-count').textContent = total;
+                document.getElementById('active-count').textContent = active;
+                document.getElementById('used-count').textContent = used;
+                document.getElementById('expired-count').textContent = expired;
+
+                renderLinks(await fetch(`${API_BASE}/links`).then(r => r.json()));
+            } catch (error) {
+                console.error('Ошибка обновления:', error);
+            }
+        }
+
+        // Отрисовка списка ссылок
+        function renderLinks(links) {
+            const tbody = document.getElementById('links-table');
+            tbody.innerHTML = links.map(link => `
+                <tr>
+                    <td>${link.id}</td>
+                    <td class="token-display">${link.token}</td>
+                    <td><a href="${link.targetUrl}" target="_blank" rel="noopener noreferrer">${link.targetUrl}</a></td>
+                    <td>${link.description || '-'}</td>
+                    <td>${formatDate(link.createdAt)}</td>
+                    <td>${link.expiresAt ? formatDate(link.expiresAt) : 'Бессрочно'}</td>
+                    <td><span class="status-badge status-${link.status}">${link.status}</span></td>
+                    <td>
+                        <button onclick="revokeLink(${link.id})" class="btn-danger">Отозвать</button>
+                        <button onclick="editLink(${link.id})" class="btn-secondary">Редактировать</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Форматирование даты
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Создание ссылки
+        document.getElementById('create-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                targetUrl: formData.get('targetUrl'),
+                description: formData.get('description') || null,
+                expires: formData.get('expires') ? 
+                    new Date(Date.now() + parseInt(formData.get('expires')) * 24 * 60 * 60 * 1000) : null
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/links`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const link = await response.json();
+                    alert(`Ссылка создана! Токен: ${link.token}`);
+                    e.target.reset();
+                    refresh();
+                } else {
+                    const error = await response.json();
+                    alert('Ошибка: ' + error.message);
+                }
+            } catch (error) {
+                alert('Ошибка сети: ' + error.message);
+            }
+        });
+
+        // Отзыв ссылки
+        async function revokeLink(id) {
+            if (!confirm('Отозвать эту ссылку? Она больше не будет работать.')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/links/${id}/revoke`, { method: 'POST' });
+                if (response.ok) {
+                    refresh();
+                    alert('Ссылка отозвана');
+                } else {
+                    alert('Ошибка при отзыве ссылки');
+                }
+            } catch (error) {
+                alert('Ошибка сети: ' + error.message);
+            }
+        }
+
+        // Редактирование ссылки
+        async function editLink(id) {
+            try {
+                const response = await fetch(`${API_BASE}/links/${id}`);
+                if (!response.ok) throw new Error('Не удалось получить ссылку');
+
+                const link = await response.json();
+                
+                document.getElementById('target-url').value = link.targetUrl;
+                document.getElementById('description').value = link.description || '';
+                document.getElementById('expires').value = link.expiresAt 
+                    ? Math.floor((link.expiresAt - Date.now()) / (1000 * 60 * 60 * 24)) + 'd'
+                    : '';
+
+                // Прокрутка к форме
+                document.querySelector('.card h2').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                alert('Ошибка при загрузке ссылки для редактирования');
+            }
+        }
+
+        // Инициализация
+        refresh();
+    </script>
+</body>
+</html>

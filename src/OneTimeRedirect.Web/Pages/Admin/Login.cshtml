@@ -1,0 +1,20 @@
+@page "/admin/login"
+@model OneTimeRedirect.Web.Pages.Admin.LoginModel
+@{
+    ViewData["Title"] = "Вход";
+}
+<div class="card narrow">
+    <h1>Вход администратора</h1>
+    @if (Model.Error is not null)
+    {
+        <p class="error">@Model.Error</p>
+    }
+    <form method="post">
+        <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+        <label for="Username">Логин</label>
+        <input id="Username" name="Username" autocomplete="username" required maxlength="100" />
+        <label for="Password">Пароль</label>
+        <input id="Password" name="Password" type="password" autocomplete="current-password" required maxlength="200" />
+        <p><button type="submit">Войти</button></p>
+    </form>
+</div>

@@ -1,0 +1,20 @@
+@page "/admin/links/{id:long}/delete"
+@model OneTimeRedirect.Web.Pages.Admin.DeleteModel
+@{
+    ViewData["Title"] = "Удалить ссылку";
+}
+<h1>Удалить ссылку #@Model.Link!.Id <span class="badge @Model.LinkState">@Model.LinkState</span></h1>
+<div class="card">
+    <p><strong>Удалить ссылку навсегда? Запись и история использования будут удалены. Это действие нельзя отменить</strong></p>
+    <p class="muted">Целевой URL: @Model.Link.TargetUrl</p>
+    @if (!string.IsNullOrEmpty(Model.Link.Description))
+    {
+        <p class="muted">Описание: @Model.Link.Description</p>
+    }
+    <div class="row">
+        <form method="post" class="shrink">
+            <button type="submit" class="danger">Удалить навсегда</button>
+        </form>
+        <div class="shrink"><a class="btn secondary" asp-page="/Admin/Index" asp-route-status="@Model.Status" asp-route-q="@Model.Q" asp-route-p="@Model.P">Отмена</a></div>
+    </div>
+</div>

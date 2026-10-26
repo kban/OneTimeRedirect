@@ -1,0 +1,27 @@
+@page "/admin/links/{id:long}/edit"
+@model OneTimeRedirect.Web.Pages.Admin.EditModel
+@{
+    ViewData["Title"] = "Изменить ссылку";
+}
+<h1>Ссылка #@Model.LinkId <span class="badge @Model.Status">@Model.Status</span></h1>
+@if (Model.Status != LinkStatus.Active)
+{
+    <div class="card">
+        <p class="error">Редактирование недоступно: ссылка уже не активна (@Model.Status).</p>
+        <p><strong>URL:</strong> @Model.TargetUrl</p>
+        <p><a class="btn secondary" href="/admin">К списку</a></p>
+    </div>
+}
+else
+{
+    <form method="post" class="card">
+        <div class="error" asp-validation-summary="All"></div>
+        <label for="TargetUrl">Целевой URL (HTTP или HTTPS)</label>
+        <input id="TargetUrl" name="TargetUrl" type="text" inputmode="url" autocomplete="off" required maxlength="2048" value="@Model.TargetUrl" />
+        <label for="ExpiresAtUtc">Истекает (UTC, необязательно)</label>
+        <input id="ExpiresAtUtc" name="ExpiresAtUtc" type="datetime-local" value="@Model.ExpiresAtUtc?.ToString("yyyy-MM-ddTHH:mm")" />
+        <label for="Description">Описание</label>
+        <input id="Description" name="Description" maxlength="500" value="@Model.Description" />
+        <p><button type="submit">Сохранить</button> <a class="btn secondary" href="/admin">Отмена</a></p>
+    </form>
+}

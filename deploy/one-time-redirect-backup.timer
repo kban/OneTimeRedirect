@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodic One Time Redirect backup
+
+[Timer]
+# Every 6 hours bounds the loss window (links created/used after the last backup). Adjust to your tolerance.
+OnCalendar=*-*-* 00,06,12,18:17:00
+RandomizedDelaySec=5min
+Persistent=true
+Unit=one-time-redirect-backup.service
+
+[Install]
+WantedBy=timers.target

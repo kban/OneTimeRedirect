@@ -1,0 +1,49 @@
+[Unit]
+Description=One Time Redirect Service
+After=network-online.target
+Wants=network-online.target
+# An unfinished or failed restore leaves this marker; while it exists the service must not start (see restore.sh).
+ConditionPathExists=!/var/lib/one-time-redirect/RESTORE_LOCK
+
+[Service]
+Type=exec
+User=redirect
+Group=redirect
+WorkingDirectory=/opt/one-time-redirect
+# Framework-dependent linux-x64 publish (apphost, mode 0755); needs aspnetcore-runtime-10.0 on the host.
+ExecStart=/opt/one-time-redirect/OneTimeRedirect.Web
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5000
+Environment=REDIRECT_DB_PATH=/var/lib/one-time-redirect/redirects.db
+# REDIRECT_ADMIN_PASSWORD_HASH, PUBLIC_BASE_URL, ...: root:root 0600, read by systemd before dropping privileges.
+EnvironmentFile=/etc/one-time-redirect.env
+Restart=always
+RestartSec=3
+
+# The database, its -wal/-shm files and the Data Protection keys (keys/) are owner-only.
+# StateDirectory creates /var/lib/one-time-redirect owned by redirect:redirect and makes it writable under ProtectSystem.
+UMask=0077
+StateDirectory=one-time-redirect
+StateDirectoryMode=0700
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

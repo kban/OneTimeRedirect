@@ -1,0 +1,32 @@
+{
+	# reverse_proxy errors (logger http.log.error: 502 while the app restarts, aborted responses) include
+	# the request URI. Redact /r/{token} so one-time tokens never reach the journal. Access logs stay off;
+	# a site-level `log` added later needs the same filter.
+	log default {
+		output stderr
+		format filter {
+			wrap json
+			fields {
+				request>uri regexp (?i)/r/[^/?#]+ /r/REDACTED
+			}
+		}
+	}
+}
+
+www.example.ru {
+	header Strict-Transport-Security "max-age=31536000"
+
+	# Maintenance gate used by deploy/restore.sh: while /etc/one-time-redirect.maintenance exists every request
+	# is answered with 503 and nothing reaches the application. Evaluated per request; no reload needed.
+	@maintenance file {
+		root /etc
+		try_files /one-time-redirect.maintenance
+	}
+	handle @maintenance {
+		header Retry-After "300"
+		header Cache-Control "no-store"
+		respond "Service temporarily unavailable" 503
+	}
+
+	reverse_proxy 127.0.0.1:5000
+}
